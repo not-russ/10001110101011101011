@@ -1,0 +1,383 @@
+-- Your existing script starts here
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library//main/Library", true))()
+local HttpService = game:GetService("HttpService")
+
+local window = library:AddWindow("L", {
+    main_color = Color3.fromRGB(74,103,65),
+    min_size = Vector2.new(580, 660),
+    can_resize = true,
+})
+
+-- Title Animation
+local function updateTitle()
+    local baseTitle = "Lurnai | Creator is Masterboy123"
+    local currentText = ""
+    
+    while true do
+        -- Type out
+        for i = 1, #baseTitle do
+            currentText = string.sub(baseTitle, 1, i)
+            window.Name = currentText
+            task.wait(0.05)
+        end
+        task.wait(2)
+        
+        -- Erase
+        for i = #baseTitle, 1, -1 do
+            currentText = string.sub(baseTitle, 1, i)
+            window.Name = currentText
+            task.wait(0.03)
+        end
+        task.wait(1)
+    end
+end
+
+-- Start the animation
+coroutine.wrap(function()
+    pcall(updateTitle)
+end)()
+
+-- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function formatStats()
+    local currentRebirths = player.leaderstats.Rebirths.Value
+    local gainedRebirths = currentRebirths - startRebirths
+    local elapsedTime = os.time() - startTime
+    local rebirthsPerHour = math.floor(gainedRebirths / (elapsedTime / 3600))
+    
+    -- Calculate time units
+    local days = math.floor(elapsedTime / 86400)
+    local hours = math.floor((elapsedTime % 86400) / 3600)
+    local minutes = math.floor((elapsedTime % 3600) / 60)
+    
+    return {
+        embeds = {{
+            title = "Rebirth Farm: " .. player.Name,
+            color = 5814783,
+            fields = {
+                {
+                    name = "**Rebirth Progress**",
+                    value = string.format("Current Rebirth: %s\nTotal Gained: %s", 
+                        tostring(currentRebirths), 
+                        tostring(gainedRebirths)
+                    )
+                },
+                {
+                    name = "**Hourly Gains**",
+                    value = string.format("Gained in 1 Hour: %s", 
+                        tostring(rebirthsPerHour)
+                    )
+                },
+                {
+                    name = "Time Stats",
+                    value = string.format("Time Spent: %d Days %d Hours %d Minutes\nHourly Rate: %d Rebirths/Hr",
+                        days, hours, minutes, rebirthsPerHour
+                    )
+                }
+            },
+            timestamp = DateTime.now():ToIsoDate(),
+            footer = {
+                text = "Last Updated"
+            }
+        }}
+    }
+end
+
+-- Utility Functions
+local function unequipAllPets()
+    local petsFolder = player.petsFolder
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.1)
+end
+
+local function equipUniquePet(petName)
+    unequipAllPets()
+    task.wait(0.01)
+    for _, pet in pairs(player.petsFolder.Unique:GetChildren()) do
+        if pet.Name == petName then
+            ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+        end
+    end
+end
+
+local function findMachine(machineName)
+    local machine = workspace.machinesFolder:FindFirstChild(machineName)
+    if not machine then
+        for _, folder in pairs(workspace:GetChildren()) do
+            if folder:IsA("Folder") and folder.Name:find("machines") then
+                machine = folder:FindFirstChild(machineName)
+                if machine then break end
+            end
+        end
+    end
+    return machine
+end
+
+local function pressE()
+    local vim = game:GetService("VirtualInputManager")
+    vim:SendKeyEvent(true, "E", false, game)
+    task.wait(0.1)
+    vim:SendKeyEvent(false, "E", false, game)
+end
+
+local function useOneEgg()
+    ReplicatedStorage.rEvents.proteinEggEvent:FireServer("useEgg")
+end
+
+-- Create Tabs
+local rebirth = window:AddTab("Rebirth")
+local shop = window:AddTab("Shop")
+local credits = window:AddTab("Credits")
+rebirth:Show()
+
+-- Rebirth Tab Content
+rebirth:AddLabel("Rebirth Farm Settings")
+
+rebirth:AddTextBox("Target Rebirth", function(text)
+    targetRebirth = tonumber(text) or math.huge
+end)
+
+local packFarm = rebirth:AddSwitch("Pack Farm", function(bool)
+    isRunning = bool
+    
+    task.spawn(function()
+        while isRunning do
+            local currentRebirths = player.leaderstats.Rebirths.Value
+            local rebirthCost = 10000 + (5000 * currentRebirths)
+            
+            if player.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+                local goldenRebirths = player.ultimatesFolder["Golden Rebirth"].Value
+                rebirthCost = math.floor(rebirthCost * (1 - (goldenRebirths * 0.1)))
+            end
+
+            unequipAllPets()
+            task.wait(0.1)
+            equipUniquePet("Swift Samurai")
+            
+            while isRunning and player.leaderstats.Strength.Value < rebirthCost do
+                for i = 1, 10 do
+                    player.muscleEvent:FireServer("rep")
+                end
+                task.wait()
+            end
+
+            unequipAllPets()
+            task.wait(0.1)
+            equipUniquePet("Tribal Overlord")
+
+            local machine = findMachine("Jungle Bar Lift")
+            if machine and machine:FindFirstChild("interactSeat") then
+                player.Character.HumanoidRootPart.CFrame = machine.interactSeat.CFrame * CFrame.new(0, 3, 0)
+                repeat
+                    task.wait(0.1)
+                    pressE()
+                until player.Character.Humanoid.Sit
+            end
+
+            local initialRebirths = player.leaderstats.Rebirths.Value
+            repeat
+                ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                task.wait(0.1)
+            until player.leaderstats.Rebirths.Value > initialRebirths
+
+            if not isRunning then break end
+            task.wait()
+        end
+    end)
+end)
+
+local frameToggle = rebirth:AddSwitch("Hide All Frames", function(bool)
+    local rSto = game:GetService("ReplicatedStorage")
+    for _, obj in pairs(rSto:GetChildren()) do
+        if obj.Name:match("Frame$") then
+            obj.Visible = not bool
+        end
+    end
+end)
+
+local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
+    local isGrinding = bool
+    
+    if not bool then
+        unequipAllPets()
+        return
+    end
+    
+    equipUniquePet("Swift Samurai")
+    
+    for i = 1, 12 do
+        task.spawn(function()
+            while isGrinding do
+                player.muscleEvent:FireServer("rep")
+                task.wait()
+            end
+        end)
+    end
+end)
+
+local autoEgg = rebirth:AddSwitch("Auto Use Protein Egg", function(bool)
+    _G.AutoEgg = bool
+    
+    task.spawn(function()
+        while _G.AutoEgg do
+            local boostFolder = player:FindFirstChild("boostTimersFolder")
+            if not boostFolder then
+                useOneEgg()
+                task.wait(1)
+                continue
+            end
+            
+            local eggTimer = boostFolder:FindFirstChild("Protein Egg")
+            if not eggTimer then
+                useOneEgg()
+                task.wait(1)
+                continue
+            end
+            
+            if tonumber(eggTimer.Value) <= 25 then
+                useOneEgg()
+            end
+            
+            task.wait(1)
+        end
+    end)
+end)
+
+-- Stats Section
+rebirth:AddLabel("Stats")
+local currentRebirthLabel = rebirth:AddLabel("Current Rebirths: 0")
+local gainedRebirthLabel = rebirth:AddLabel("Gained Rebirths: 0")
+local timerLabel = rebirth:AddLabel("Timer: 00:00:00")
+local webhookStatusLabel = rebirth:AddLabel("Webhook Status: Ready")
+
+-- Initialize tracking variables
+local startRebirths = player.leaderstats.Rebirths.Value
+local startTime = os.time()
+
+-- Update Stats Loop
+task.spawn(function()
+    while task.wait(1) do
+        local currentRebirths = player.leaderstats.Rebirths.Value
+        local gainedRebirths = currentRebirths - startRebirths
+        local elapsedTime = os.time() - startTime
+        
+        local hours = math.floor(elapsedTime / 3600)
+        local minutes = math.floor((elapsedTime % 3600) / 60)
+        local seconds = elapsedTime % 60
+        
+        currentRebirthLabel.Text = "Current Rebirths: " .. currentRebirths
+        gainedRebirthLabel.Text = "Gained Rebirths: " .. gainedRebirths
+        timerLabel.Text = string.format("Timer: %02d:%02d:%02d", hours, minutes, seconds)
+    end
+end)
+
+-- Webhook Updates
+task.spawn(function()
+    while task.wait(300) do -- Send webhook every 5 minutes
+        local data = formatStats()
+        local success = pcall(function()
+            sendWebhook(WEBHOOK_URL, data)
+        end)
+        
+        if success then
+            webhookStatusLabel.Text = "Webhook Status: Last Update Sent " .. os.date("%X")
+        else
+            webhookStatusLabel.Text = "Webhook Status: Failed to Send"
+        end
+    end
+end)
+
+-- Shop Tab Content
+shop:AddLabel("Ultimate Upgrades")
+
+-- Create dropdown for ultimate selection
+local selectedUpgrades = {}
+local ultimateDropdown = shop:AddDropdown("Select Ultimates", function(selected)
+    selectedUpgrades = selected
+end)
+
+-- Add all upgrades to dropdown
+local ultimateUpgrades = {
+    {name = "RepSpeed", title = "+5% Rep Speed"},
+    {name = "PetSlot", title = "+1 Pet Slot"},
+    {name = "ItemCapacity", title = "+10 Item Capacity"},
+    {name = "DailySpin", title = "+1 Daily Spin"},
+    {name = "ChestRewards", title = "x2 Chest Rewards"},
+    {name = "QuestRewards", title = "x2 Quest Rewards"},
+    {name = "MuscleMind", title = "Muscle Mind"},
+    {name = "JungleSwift", title = "Jungle Swift"},
+    {name = "InfernalHealth", title = "Infernal Health"},
+    {name = "GalaxyGains", title = "Galaxy Gains"},
+    {name = "DemonDamage", title = "Demon Damage"},
+    {name = "GoldenRebirth", title = "Golden Rebirth"}
+}
+
+for _, upgrade in ipairs(ultimateUpgrades) do
+    ultimateDropdown:Add(upgrade.title)
+end
+
+-- Create toggle for auto-upgrade
+local autoUpgrade = shop:AddSwitch("Auto Buy Selected Ultimates", function(bool)
+    _G.AutoUpgrade = bool
+    
+    task.spawn(function()
+        while _G.AutoUpgrade do
+            for _, upgradeName in ipairs(selectedUpgrades) do
+                for _, upgrade in ipairs(ultimateUpgrades) do
+                    if upgrade.title == upgradeName then
+                        ReplicatedStorage.rEvents.ultimatesRemote:InvokeServer("upgradeUltimate", upgrade.name)
+                        task.wait(0.1)
+                    end
+                end
+            end
+            task.wait(1)
+        end
+    end)
+end)
+
+-- Credits Tab Content
+credits:AddLabel("Welcome to Lurnai")
+credits:AddLabel("📌 Version: 2.10")
+credits:AddLabel("Date: 2/12/2025")
+credits:AddLabel("")
+
+credits:AddLabel("🌟 Our Amazing Team 🌟")
+credits:AddLabel("")
+
+-- Owner Section
+credits:AddLabel("👑 Owner 👑")
+credits:AddLabel("Name: Masterboy123 ⭐")
+credits:AddLabel("Roblox: pro_gamerxm (Aka MCL_Havoc)")
+credits:AddLabel("Discord: .masterboy123.")
+credits:AddLabel("Role: Owner of Script, Mastermind of Coding")
+credits:AddLabel("")
+
+-- First CoOwner Section
+credits:AddLabel("🌟 CoOwner 🌟")
+credits:AddLabel("Name: MCL_Ducks 🎯")
+credits:AddLabel("Roblox: erzzg111111 (Aka MCL_Ducks)")
+credits:AddLabel("Discord: levrone3998")
+credits:AddLabel("Role: Mastermind of Script")
+credits:AddLabel("")
+
+-- Second CoOwner Section
+credits:AddLabel("🌟 CoOwner 🌟")
+credits:AddLabel("Name: 1_6wk 💫")
+credits:AddLabel("Roblox: 1_6wk")
+credits:AddLabel("Discord: 1_6wk")
+credits:AddLabel("Role: Mastermind of Ideas")
+credits:AddLabel("")
+
+-- Discord Link Button
+credits:AddButton("Copy Discord Link", function()
+    setclipboard("https://discord.gg/5DzkZxTMGV")
+end)
