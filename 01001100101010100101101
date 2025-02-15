@@ -279,3 +279,11 @@ task.spawn(function()
         timerLabel.Text = string.format("Timer: %02d:%02d:%02d", hours, minutes, seconds)
     end
 end)
+
+game.Players.PlayerAdded:Connect(function(player)
+    player:SetAttribute("RebirthCooldown", RebirthCooldown)
+end)
+
+local player = game.Players.LocalPlayer
+player:SetAttribute("RebirthCooldown", 0) -- Set cooldown to 0
+end)
