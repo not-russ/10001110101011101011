@@ -280,10 +280,6 @@ task.spawn(function()
     end
 end)
 
-game.Players.PlayerAdded:Connect(function(player)
-    player:SetAttribute("RebirthCooldown", RebirthCooldown)
-end)
-
-local player = game.Players.LocalPlayer
-player:SetAttribute("RebirthCooldown", 0) -- Set cooldown to 0
-end)
+local player= game.Players.Localplayer
+player:SetAttribute("RebirthCooldown",0)
+emd)
