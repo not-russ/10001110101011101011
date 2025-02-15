@@ -191,6 +191,10 @@ local packFarm = rebirth:AddSwitch("Pack Farm", function(bool)
 
             if not isRunning then break end
             task.wait()
+            end
+
+            local player= game.Players.Localplayer
+            player:SetAttribute("RebirthCooldown",0)
         end
     end)
 end)
