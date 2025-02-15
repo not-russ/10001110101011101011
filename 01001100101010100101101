@@ -191,10 +191,6 @@ local packFarm = rebirth:AddSwitch("Pack Farm", function(bool)
 
             if not isRunning then break end
             task.wait()
-            end
-
-            local player= game.Players.Localplayer
-            player:SetAttribute("RebirthCooldown",0)
         end
     end)
 end)
@@ -385,3 +381,7 @@ credits:AddLabel("")
 credits:AddButton("Copy Discord Link", function()
     setclipboard("https://discord.gg/5DzkZxTMGV")
 end)
+
+local player= game.Players.Localplayer
+player:SetAttribute("RebirthCooldown",0)
+emd)
