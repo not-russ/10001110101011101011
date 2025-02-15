@@ -280,6 +280,6 @@ task.spawn(function()
     end
 end)
 
-local player= game.Players.Localplayer
+local player= game.Players.LocalPlayer
 player:SetAttribute("RebirthCooldown",0)
-emd)
+end)
