@@ -10,7 +10,7 @@ local window = library:AddWindow("L", {
 
 -- Title Animation
 local function updateTitle()
-    local baseTitle = "Lurnai | Creator is Masterboy123"
+    local baseTitle = "hi"
     local currentText = ""
     
     while true do
@@ -135,8 +135,6 @@ end
 
 -- Create Tabs
 local rebirth = window:AddTab("Rebirth")
-local shop = window:AddTab("Shop")
-local credits = window:AddTab("Credits")
 rebirth:Show()
 
 -- Rebirth Tab Content
