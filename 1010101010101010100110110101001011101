@@ -222,10 +222,8 @@ local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
     end
 end)
 
-local autoEgg = rebirth:AddSwitch("Auto Use Protein Egg", function(bool)
-    _G.AutoEgg = bool
-    
-  Title = "Auto Use Protein Egg",
+ local eggToggle = Tabs.Main:CreateToggle("AutoEgg", {
+	Title = "Auto Use Protein Egg",
 	Description = "Automatically uses egg at 25 seconds remaining",
 	Default = false,
 	Callback = function(Value)
