@@ -10,7 +10,7 @@ local window = library:AddWindow("L", {
 
 -- Title Animation
 local function updateTitle()
-    local baseTitle = "hi"
+    local baseTitle = "Lurnai | Creator is Masterboy123"
     local currentText = ""
     
     while true do
@@ -135,6 +135,8 @@ end
 
 -- Create Tabs
 local rebirth = window:AddTab("Rebirth")
+local shop = window:AddTab("Shop")
+local credits = window:AddTab("Credits")
 rebirth:Show()
 
 -- Rebirth Tab Content
@@ -222,30 +224,31 @@ local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
     end
 end)
 
- local eggToggle = Tabs.Main:CreateToggle("AutoEgg", {
-	Title = "Auto Use Protein Egg",
-	Description = "Automatically uses egg at 25 seconds remaining",
-	Default = false,
-	Callback = function(Value)
-		_G.AutoEgg = Value
-		while _G.AutoEgg do
-			local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
-			if not boostFolder then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			local eggTimer = boostFolder:FindFirstChild("Protein Egg")
-			if not eggTimer then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			if tonumber(eggTimer.Value) <= 25 then
-				useOneEgg()
-			end
-			task.wait(1)
-		end
+local autoEgg = rebirth:AddSwitch("Auto Use Protein Egg", function(bool)
+    _G.AutoEgg = bool
+    
+    task.spawn(function()
+        while _G.AutoEgg do
+            local boostFolder = player:FindFirstChild("boostTimersFolder")
+            if not boostFolder then
+                useOneEgg()
+                task.wait(1)
+                continue
+            end
+            
+            local eggTimer = boostFolder:FindFirstChild("Protein Egg")
+            if not eggTimer then
+                useOneEgg()
+                task.wait(1)
+                continue
+            end
+            
+            if tonumber(eggTimer.Value) <= 25 then
+                useOneEgg()
+            end
+            
+            task.wait(1)
+        end
     end)
 end)
 
@@ -275,4 +278,106 @@ task.spawn(function()
         gainedRebirthLabel.Text = "Gained Rebirths: " .. gainedRebirths
         timerLabel.Text = string.format("Timer: %02d:%02d:%02d", hours, minutes, seconds)
     end
+end)
+
+-- Webhook Updates
+task.spawn(function()
+    while task.wait(300) do -- Send webhook every 5 minutes
+        local data = formatStats()
+        local success = pcall(function()
+            sendWebhook(WEBHOOK_URL, data)
+        end)
+        
+        if success then
+            webhookStatusLabel.Text = "Webhook Status: Last Update Sent " .. os.date("%X")
+        else
+            webhookStatusLabel.Text = "Webhook Status: Failed to Send"
+        end
+    end
+end)
+
+-- Shop Tab Content
+shop:AddLabel("Ultimate Upgrades")
+
+-- Create dropdown for ultimate selection
+local selectedUpgrades = {}
+local ultimateDropdown = shop:AddDropdown("Select Ultimates", function(selected)
+    selectedUpgrades = selected
+end)
+
+-- Add all upgrades to dropdown
+local ultimateUpgrades = {
+    {name = "RepSpeed", title = "+5% Rep Speed"},
+    {name = "PetSlot", title = "+1 Pet Slot"},
+    {name = "ItemCapacity", title = "+10 Item Capacity"},
+    {name = "DailySpin", title = "+1 Daily Spin"},
+    {name = "ChestRewards", title = "x2 Chest Rewards"},
+    {name = "QuestRewards", title = "x2 Quest Rewards"},
+    {name = "MuscleMind", title = "Muscle Mind"},
+    {name = "JungleSwift", title = "Jungle Swift"},
+    {name = "InfernalHealth", title = "Infernal Health"},
+    {name = "GalaxyGains", title = "Galaxy Gains"},
+    {name = "DemonDamage", title = "Demon Damage"},
+    {name = "GoldenRebirth", title = "Golden Rebirth"}
+}
+
+for _, upgrade in ipairs(ultimateUpgrades) do
+    ultimateDropdown:Add(upgrade.title)
+end
+
+-- Create toggle for auto-upgrade
+local autoUpgrade = shop:AddSwitch("Auto Buy Selected Ultimates", function(bool)
+    _G.AutoUpgrade = bool
+    
+    task.spawn(function()
+        while _G.AutoUpgrade do
+            for _, upgradeName in ipairs(selectedUpgrades) do
+                for _, upgrade in ipairs(ultimateUpgrades) do
+                    if upgrade.title == upgradeName then
+                        ReplicatedStorage.rEvents.ultimatesRemote:InvokeServer("upgradeUltimate", upgrade.name)
+                        task.wait(0.1)
+                    end
+                end
+            end
+            task.wait(1)
+        end
+    end)
+end)
+
+-- Credits Tab Content
+credits:AddLabel("Welcome to Lurnai")
+credits:AddLabel("📌 Version: 2.10")
+credits:AddLabel("Date: 2/12/2025")
+credits:AddLabel("")
+
+credits:AddLabel("🌟 Our Amazing Team 🌟")
+credits:AddLabel("")
+
+-- Owner Section
+credits:AddLabel("👑 Owner 👑")
+credits:AddLabel("Name: Masterboy123 ⭐")
+credits:AddLabel("Roblox: pro_gamerxm (Aka MCL_Havoc)")
+credits:AddLabel("Discord: .masterboy123.")
+credits:AddLabel("Role: Owner of Script, Mastermind of Coding")
+credits:AddLabel("")
+
+-- First CoOwner Section
+credits:AddLabel("🌟 CoOwner 🌟")
+credits:AddLabel("Name: MCL_Ducks 🎯")
+credits:AddLabel("Roblox: erzzg111111 (Aka MCL_Ducks)")
+credits:AddLabel("Discord: levrone3998")
+credits:AddLabel("Role: Mastermind of Script")
+credits:AddLabel("")
+
+-- Second CoOwner Section
+credits:AddLabel("🌟 CoOwner 🌟")
+credits:AddLabel("Name: 1_6wk 💫")
+credits:AddLabel("Roblox: 1_6wk")
+credits:AddLabel("Discord: 1_6wk")
+credits:AddLabel("Role: Mastermind of Ideas")
+credits:AddLabel("")
+
+-- Discord Link Button
+credits:AddButton("Copy Discord Link", function()
+    setclipboard("https://discord.gg/5DzkZxTMGV")
 end)
