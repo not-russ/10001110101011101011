@@ -255,7 +255,6 @@ rebirth:AddLabel("Stats")
 local currentRebirthLabel = rebirth:AddLabel("Current Rebirths: 0")
 local gainedRebirthLabel = rebirth:AddLabel("Gained Rebirths: 0")
 local timerLabel = rebirth:AddLabel("Timer: 00:00:00")
-local webhookStatusLabel = rebirth:AddLabel("Webhook Status: Ready")
 
 -- Initialize tracking variables
 local startRebirths = player.leaderstats.Rebirths.Value
@@ -275,21 +274,5 @@ task.spawn(function()
         currentRebirthLabel.Text = "Current Rebirths: " .. currentRebirths
         gainedRebirthLabel.Text = "Gained Rebirths: " .. gainedRebirths
         timerLabel.Text = string.format("Timer: %02d:%02d:%02d", hours, minutes, seconds)
-    end
-end)
-
--- Webhook Updates
-task.spawn(function()
-    while task.wait(300) do -- Send webhook every 5 minutes
-        local data = formatStats()
-        local success = pcall(function()
-            sendWebhook(WEBHOOK_URL, data)
-        end)
-        
-        if success then
-            webhookStatusLabel.Text = "Webhook Status: Last Update Sent " .. os.date("%X")
-        else
-            webhookStatusLabel.Text = "Webhook Status: Failed to Send"
-        end
     end
 end)
