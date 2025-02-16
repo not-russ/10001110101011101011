@@ -223,29 +223,34 @@ local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
 end)
 
 local eggToggle = Tabs.Main:CreateToggle("AutoEgg", {
-	Title = "Auto Use Protein Egg",
-	Description = "Automatically uses egg at 25 seconds remaining",
-	Default = false,
-	Callback = function(Value)
-		_G.AutoEgg = Value
-		while _G.AutoEgg do
-			local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
-			if not boostFolder then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			local eggTimer = boostFolder:FindFirstChild("Protein Egg")
-			if not eggTimer then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			if tonumber(eggTimer.Value) <= 25 then
-				useOneEgg()
-			end
-			task.wait(1)
-        end
+	local function useOneEgg()
+		local protein = game.Players.LocalPlayer.Backpack:FindFirstChild("Protein Egg")
+		if protein then
+			protein.Parent = game.Players.LocalPlayer.Character
+			task.wait(0.1)
+			local virtualInput = game:GetService("VirtualInputManager")
+			virtualInput:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+			task.wait(0.5)
+			virtualInput:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+			return true
+		end
+		return false
+	end
+
+	local function checkEggTimer()
+		local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
+		if not boostFolder then
+			return false
+		end
+		local eggTimer = boostFolder:FindFirstChild("Protein Egg")
+		if not eggTimer then
+			return useOneEgg()
+		end
+		if tonumber(eggTimer.Value) <= 25 then
+			return useOneEgg()
+		end
+		return true
+	end
     end)
 end)
 
