@@ -270,9 +270,9 @@ local eggToggle = Tabs.Main:CreateToggle("AutoEgg", {
 				useOneEgg()
 			end
 			task.wait(1)
+		end
 	end
-    end)
-end)
+})
 
 -- Stats Section
 rebirth:AddLabel("Stats")
