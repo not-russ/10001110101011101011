@@ -135,7 +135,6 @@ end
 
 -- Create Tabs
 local rebirth = window:AddTab("Rebirth")
-local credits = window:AddTab("Credits")
 rebirth:Show()
 
 -- Rebirth Tab Content
@@ -293,42 +292,4 @@ task.spawn(function()
             webhookStatusLabel.Text = "Webhook Status: Failed to Send"
         end
     end
-end)
-
--- Credits Tab Content
-credits:AddLabel("Welcome to Lurnai")
-credits:AddLabel("📌 Version: 2.10")
-credits:AddLabel("Date: 2/12/2025")
-credits:AddLabel("")
-
-credits:AddLabel("🌟 Our Amazing Team 🌟")
-credits:AddLabel("")
-
--- Owner Section
-credits:AddLabel("👑 Owner 👑")
-credits:AddLabel("Name: Masterboy123 ⭐")
-credits:AddLabel("Roblox: pro_gamerxm (Aka MCL_Havoc)")
-credits:AddLabel("Discord: .masterboy123.")
-credits:AddLabel("Role: Owner of Script, Mastermind of Coding")
-credits:AddLabel("")
-
--- First CoOwner Section
-credits:AddLabel("🌟 CoOwner 🌟")
-credits:AddLabel("Name: MCL_Ducks 🎯")
-credits:AddLabel("Roblox: erzzg111111 (Aka MCL_Ducks)")
-credits:AddLabel("Discord: levrone3998")
-credits:AddLabel("Role: Mastermind of Script")
-credits:AddLabel("")
-
--- Second CoOwner Section
-credits:AddLabel("🌟 CoOwner 🌟")
-credits:AddLabel("Name: 1_6wk 💫")
-credits:AddLabel("Roblox: 1_6wk")
-credits:AddLabel("Discord: 1_6wk")
-credits:AddLabel("Role: Mastermind of Ideas")
-credits:AddLabel("")
-
--- Discord Link Button
-credits:AddButton("Copy Discord Link", function()
-    setclipboard("https://discord.gg/5DzkZxTMGV")
 end)
