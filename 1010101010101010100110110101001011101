@@ -247,7 +247,7 @@ local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
     end
 end)
 
-local eggToggle = rebirth:AddSwitch("auto eggs",
+local eggToggle = rebirth:AddSwitch("auto eggs", function(bool)
 	Callback = function(Value)
 		_G.AutoEgg = Value
 		while _G.AutoEgg do
