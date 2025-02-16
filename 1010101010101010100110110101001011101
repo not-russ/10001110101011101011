@@ -269,7 +269,7 @@ local eggToggle = rebirth:AddSwitch("auto eggs", function(bool)
 			task.wait(1)
 		end
 	end
-})
+end)
 
 -- Stats Section
 rebirth:AddLabel("Stats")
