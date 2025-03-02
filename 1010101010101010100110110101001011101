@@ -219,27 +219,42 @@ local speedGrind = rebirth:AddSwitch("Speed Grind (No Rebirth)", function(bool)
 end)
 
 local eggToggle = rebirth:AddSwitch("auto eggs", function(bool)
-	Callback = function(Value)
-		_G.AutoEgg = Value
-		while _G.AutoEgg do
-			local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
-			if not boostFolder then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			local eggTimer = boostFolder:FindFirstChild("Protein Egg")
-			if not eggTimer then
-				useOneEgg()
-				task.wait(1)
-				continue
-			end
-			if tonumber(eggTimer.Value) <= 25 then
-				useOneEgg()
-			end
-			task.wait(1)
-		end
-	end
+    _G.AutoEgg = bool  -- Set the global variable to the toggle state
+
+    -- Function to handle auto-egg logic
+    local function autoEggLoop()
+        while _G.AutoEgg do
+            local boostFolder = game.Players.LocalPlayer:FindFirstChild("boostTimersFolder")
+            if not boostFolder then
+                warn("boostTimersFolder not found!")
+                task.wait(1)
+                continue
+            end
+
+            local eggTimer = boostFolder:FindFirstChild("Protein Egg")
+            if not eggTimer then
+                if not useOneEgg() then
+                    warn("No Protein Egg found in backpack!")
+                end
+                task.wait(1)
+                continue
+            end
+
+            if tonumber(eggTimer.Value) <= 25 then
+                if not useOneEgg() then
+                    warn("Failed to use Protein Egg!")
+                end
+            end
+
+            task.wait(1)
+        end
+    end
+
+    if bool then
+        task.spawn(autoEggLoop)  -- Start the loop in a new thread
+    else
+        _G.AutoEgg = false  -- Ensure the loop stops
+    end
 end)
 
 -- Stats Section
