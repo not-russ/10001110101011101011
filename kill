@@ -1,0 +1,696 @@
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+	game:GetService("VirtualUser"):CaptureController()
+	game:GetService("VirtualUser"):ClickButton1(Vector2.new())
+	game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
+
+for _, portal in pairs(game:GetDescendants()) do
+	if portal.Name == "RobloxForwardPortals" then
+		portal:Destroy()
+	end
+end
+
+game.DescendantAdded:Connect(function(descendant)
+	if descendant.Name == "RobloxForwardPortals" then
+		descendant:Destroy()
+	end
+end)
+
+local VirtualUser = game:GetService('VirtualUser')
+game:GetService('Players').LocalPlayer.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local LP = Players.LocalPlayer
+local killingConnection
+_G.fastHitActive = false
+local whitelist = {}
+local isHitting = false
+local GuiVisible = true
+local parts = {}
+local partSize = 2048
+local totalDistance = 50000
+local startPosition = Vector3.new(-2, - 9.5, -2)
+local numberOfParts = math.ceil(totalDistance / partSize)
+local rockOriginal
+local rockSize
+local rockConnection
+local function createParts()
+	for x = 0, numberOfParts - 1 do
+		for z = 0, numberOfParts - 1 do
+			local newPartSide = Instance.new("Part")
+			newPartSide.Size = Vector3.new(partSize, 1, partSize)
+			newPartSide.Position = startPosition + Vector3.new(x * partSize, 0, z * partSize)
+			newPartSide.Anchored = true
+			newPartSide.Transparency = 1
+			newPartSide.CanCollide = true
+			newPartSide.Name = "Part_Side_" .. x .. "_" .. z
+			newPartSide.Parent = workspace
+			table.insert(parts, newPartSide)
+			local newPartLeftRight = Instance.new("Part")
+			newPartLeftRight.Size = Vector3.new(partSize, 1, partSize)
+			newPartLeftRight.Position = startPosition + Vector3.new(- x * partSize, 0, z * partSize)
+			newPartLeftRight.Anchored = true
+			newPartLeftRight.Transparency = 1
+			newPartLeftRight.CanCollide = true
+			newPartLeftRight.Name = "Part_LeftRight_" .. x .. "_" .. z
+			newPartLeftRight.Parent = workspace
+			table.insert(parts, newPartLeftRight)
+			local newPartUpLeft = Instance.new("Part")
+			newPartUpLeft.Size = Vector3.new(partSize, 1, partSize)
+			newPartUpLeft.Position = startPosition + Vector3.new(- x * partSize, 0, - z * partSize)
+			newPartUpLeft.Anchored = true
+			newPartUpLeft.Transparency = 1
+			newPartUpLeft.CanCollide = true
+			newPartUpLeft.Name = "Part_UpLeft_" .. x .. "_" .. z
+			newPartUpLeft.Parent = workspace
+			table.insert(parts, newPartUpLeft)
+			local newPartUpRight = Instance.new("Part")
+			newPartUpRight.Size = Vector3.new(partSize, 1, partSize)
+			newPartUpRight.Position = startPosition + Vector3.new(x * partSize, 0, - z * partSize)
+			newPartUpRight.Anchored = true
+			newPartUpRight.Transparency = 1
+			newPartUpRight.CanCollide = true
+			newPartUpRight.Name = "Part_UpRight_" .. x .. "_" .. z
+			newPartUpRight.Parent = workspace
+			table.insert(parts, newPartUpRight)
+		end
+	end
+end
+
+local function makePartsWalkthrough()
+	for _, part in ipairs(parts) do
+		if part and part.Parent then
+			part.CanCollide = false
+		end
+	end
+end
+
+local function makePartsSolid()
+	for _, part in ipairs(parts) do
+		if part and part.Parent then
+			part.CanCollide = true
+		end
+	end
+end
+
+local Library = loadstring(game:HttpGetAsync("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
+local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
+local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
+ 
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName
+
+local Window = Library:CreateWindow{
+	Title = displayName .. " Private Script",
+	SubTitle = "By Masterboy123",
+	TabWidth = 125,
+	Size = UDim2.fromOffset(830, 525),
+	Resize = true,
+	MinSize = Vector2.new(470, 380),
+	Acrylic = true,
+	Theme = "VSC Dark High Contrast",
+	MinimizeKey = Enum.KeyCode.LeftAlt
+}
+
+local Tabs = {
+	Main = Window:CreateTab{
+		Title = "Main ⭐",
+		Icon = "phosphor-house-bold"
+	},
+	AutoStuff = Window:CreateTab{
+		Title = "Auto Stuff 🔄",
+		Icon = "phosphor-robot-bold"
+	},
+	AutoFarm = Window:CreateTab{
+		Title = "Auto Farm 🌾",
+		Icon = "phosphor-robot-bold"
+	},
+	Rebirth = Window:CreateTab{
+		Title = "Rebirth 🔁",
+		Icon = "phosphor-arrows-clockwise-bold"
+	},
+	Killer = Window:CreateTab{
+		Title = "Killer ⚔️",
+		Icon = "phosphor-sword-bold"
+	},
+	Crystals = Window:CreateTab{
+		Title = "Crystals 💎",
+		Icon = "phosphor-diamond-bold"
+	},
+	Teleport = Window:CreateTab{
+		Title = "Teleport 🚀",
+		Icon = "phosphor-dog-bold"
+	},
+	Stats = Window:CreateTab{
+		Title = "Stats 📊",
+		Icon = "phosphor-sparkle-bold"
+	},
+	Misc = Window:CreateTab{
+		Title = "Misc 🎯",
+		Icon = "phosphor-map-pin-bold"
+	},
+	Settings = Window:CreateTab{
+		Title = "Settings ⚙️",
+		Icon = "phosphor-sliders-bold"
+ 	 },
+	Credits = Window:CreateTab{
+     		Title = "Credits ⭐",
+     	 	Icon = "phosphor-star-bold"
+	}
+}
+
+local Options = Library.Options  
+local MainSection = Tabs.Main:CreateSection("Basic Controls")
+local selectedSize = "2"
+
+local ScriptInfo = Tabs.Credits:CreateParagraph("ScriptInfo", {
+    Title = "✨ Lurnai",
+    Content = [[
+        📌 Version: 2.10
+        
+        Welcome to Lurnai
+    ]],
+    TitleAlignment = "Center",
+    ContentAlignment = Enum.TextXAlignment.Center
+})
+
+local TeamInfo = Tabs.Credits:CreateParagraph("TeamInfo", {
+    Title = "🌟 Our Amazing Team 🌟",
+    Content = [[
+        👑 Owner 👑
+        Name: Masterboy123 ⭐
+        Roblox: pro_gamerxm (Aka MCL_Havoc)
+        Discord: .masterboy123.
+        Role: Owner of Script, Mastermind of Coding
+
+        🌟 CoOwner 🌟
+        Name: MCL_Ducks 🎯
+        Roblox: erzzg111111 (Aka MCL_Ducks)
+        Discord: levrone3998
+        Role: Mastermind of Script
+
+        🌟 CoOwner 🌟
+        Name: 1_6wk 💫
+        Roblox: 1_6wk
+        Discord: 1_6wk
+        Role: Mastermind of Ideas
+
+	tester guy
+	russy wussy
+    ]],
+    TitleAlignment = "Center",
+    ContentAlignment = Enum.TextXAlignment.Left
+})
+
+local Section = Tabs.Killer:CreateSection("Auto Kill")
+local Players = game:GetService("Players")
+local function checkCharacter()
+	if not game.Players.LocalPlayer.Character then
+		repeat
+			task.wait()
+		until game.Players.LocalPlayer.Character
+	end
+	return game.Players.LocalPlayer.Character
+end
+
+local function killPlayer(target)
+	local character = checkCharacter()
+	if character and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+		if character:FindFirstChild("LeftHand") then
+			firetouchinterest(target.Character.HumanoidRootPart, character.LeftHand, 0)
+			firetouchinterest(target.Character.HumanoidRootPart, character.LeftHand, 1)
+			gettool()
+		end
+	end
+end
+
+local whitelist = {}
+
+Players.PlayerAdded:Connect(function(player)
+	local whitelistName = player.Name:lower()
+	local whitelistDisplay = player.DisplayName:lower()
+	for name, _ in pairs(whitelist) do
+		if name:lower() == whitelistName or name:lower() == whitelistDisplay then
+			whitelist[player.Name] = true
+			break
+		end
+	end
+end)
+
+local WhitelistedList = Tabs.Killer:CreateParagraph("WhitelistedPlayers", {
+	Title = "Whitelisted Players",
+	Content = "None",
+	TitleAlignment = "Left",
+	ContentAlignment = Enum.TextXAlignment.Left
+})
+
+local function updateWhitelistDisplay()
+	local displayText = ""
+	local count = 0
+	for name, _ in pairs(whitelist) do
+		count = count + 1
+		displayText = displayText .. name .. "\n"
+	end
+	if count == 0 then
+		displayText = "None"
+	end
+	WhitelistedList:SetContent(displayText)
+end
+
+Tabs.Killer:AddToggle("Kill v2 Player", {
+	Title = "Start Killing",
+	Default = false,
+	Callback = function(v)
+		getgenv().killallv2 = v
+		task.spawn(function()
+			while getgenv().killallv2 do
+				for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+					if player ~= game.Players.LocalPlayer and not whitelist[player.Name] then
+						if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+							killPlayer(player)
+						end
+					end
+				end
+				task.wait()
+			end
+		end)
+	end
+})
+
+local WhitelistInput = Tabs.Killer:CreateInput("WhitelistInput", {
+	Title = "Whitelist",
+	Description = "Username or Display Name",
+	Default = "",
+	Placeholder = "Type here...",
+	Numeric = false,
+	Finished = true,
+	Callback = function(Value)
+		if Value ~= "" then
+			local valueLower = Value:lower()
+			for _, player in pairs(Players:GetPlayers()) do
+				if player.Name:lower() == valueLower or (player.DisplayName and player.DisplayName:lower() == valueLower) then
+					whitelist[player.Name] = true
+					updateWhitelistDisplay()
+				end
+			end
+		end
+	end
+})
+
+local AutoWhitelistFriends = Tabs.Killer:CreateToggle("AutoWhitelistFriends", {
+	Title = "Auto Whitelist Friends",
+	Description = "Automatically whitelist your friends when they join",
+	Default = false,
+	Callback = function(Value)
+		getgenv().autoWhitelistFriends = Value
+		if Value then
+			for _, player in pairs(Players:GetPlayers()) do
+				if player:IsFriendsWith(game.Players.LocalPlayer.UserId) then
+					whitelist[player.Name] = true
+				end
+			end
+			updateWhitelistDisplay()
+		end
+	end
+})
+
+Players.PlayerAdded:Connect(function(player)
+	if getgenv().autoWhitelistFriends and player:IsFriendsWith(game.Players.LocalPlayer.UserId) then
+		whitelist[player.Name] = true
+		updateWhitelistDisplay()
+	end
+end)
+
+Tabs.Killer:CreateButton{
+	Title = "Clear All Whitelisted",
+	Callback = function()
+		table.clear(whitelist)
+		updateWhitelistDisplay()
+	end
+}
+
+local TargetToggle = Tabs.Killer:CreateToggle("KillTargetToggle", {
+	Title = "Kill Target Player",
+	Default = false,
+	Callback = function(Value)
+		getgenv().killTarget = Value
+		task.spawn(function()
+			while getgenv().killTarget do
+				for _, player in pairs(game.Players:GetPlayers()) do
+					if (player.Name:lower() == targetPlayer:lower() or player.DisplayName:lower() == targetPlayer:lower()) and player ~= game.Players.LocalPlayer then
+						if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+							killPlayer(player)
+						end
+					end
+				end
+				task.wait()
+			end
+		end)
+		if not getgenv().killTarget then
+			local character = checkCharacter()
+			if character and character:FindFirstChild("Humanoid") then
+				character.Humanoid:UnequipTools()
+			end
+		end
+	end
+})
+
+local PlayerDropdown = Tabs.Killer:CreateDropdown("PlayerList", {
+	Title = "Select Target",
+	Description = "Choose player to target",
+	Values = {},
+	Multi = false,
+	Default = nil,
+	Callback = function(Value)
+		local username = string.match(Value, "(.+) |")
+		targetPlayer = username
+		print("Target set to:", targetPlayer)
+	end
+})
+
+local function updatePlayerList()
+	local playerInfo = {}
+	for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+		if player ~= game.Players.LocalPlayer then
+			local displayText = player.Name .. " | " .. player.DisplayName
+			table.insert(playerInfo, displayText)
+		end
+	end
+	PlayerDropdown:SetValues(playerInfo)
+end
+
+task.spawn(function()
+	while true do
+		updatePlayerList()
+		task.wait(0)
+	end
+end)
+
+game:GetService("Players").PlayerAdded:Connect(updatePlayerList)
+game:GetService("Players").PlayerRemoving:Connect(updatePlayerList)
+updatePlayerList()
+
+Tabs.Misc:CreateButton{
+	Title = "Less Lag",
+	Description = "Optimize game performance",
+	Callback = function()
+		for _, v in pairs(game:GetDescendants()) do
+			if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+				v.Enabled = false
+			end
+		end
+		local lighting = game:GetService("Lighting")
+		lighting.GlobalShadows = false
+		lighting.FogEnd = 9e9
+		for _, v in pairs(workspace:GetDescendants()) do
+			if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") then
+				v.Material = Enum.Material.SmoothPlastic
+				if v:IsA("Texture") then
+					v:Destroy()
+				end
+			end
+		end
+		settings().Rendering.QualityLevel = 1
+	end
+}
+
+Tabs.Misc:CreateButton{
+	Title = "Rejoin",
+	Description = "Instantly rejoin the same server",
+	Callback = function()
+		game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)
+	end
+}
+
+Tabs.Misc:CreateButton{
+	Title = "ServerHop",
+	Description = "Join a different server",
+	Callback = function()
+		local PlaceID = game.PlaceId
+		local AllIDs = {}
+		local foundAnything = ""
+		local actualHour = os.date("!*t").hour
+		local Deleted = false
+		local function TPReturner()
+			local Site;
+			if foundAnything == "" then
+				Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+			else
+				Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+			end
+			local ID = ""
+			if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+				foundAnything = Site.nextPageCursor
+			end
+			local num = 0;
+			for i, v in pairs(Site.data) do
+				local Possible = true
+				ID = tostring(v.id)
+				if tonumber(v.maxPlayers) > tonumber(v.playing) then
+					for _, Existing in pairs(AllIDs) do
+						if num ~= 0 then
+							if ID == tostring(Existing) then
+								Possible = false
+							end
+						else
+							if tonumber(actualHour) ~= tonumber(Existing) then
+								local delFile = pcall(function()
+									AllIDs = {}
+									table.insert(AllIDs, actualHour)
+								end)
+							end
+						end
+						num = num + 1
+					end
+					if Possible == true then
+						table.insert(AllIDs, ID)
+						task.wait()
+						pcall(function()
+							game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+						end)
+						task.wait(4)
+					end
+				end
+			end
+		end
+		TPReturner()
+	end
+}
+
+Tabs.Misc:CreateButton{
+	Title = "Join Small Server",
+	Description = "Find lowest player count server",
+	Callback = function()
+		local PlaceID = game.PlaceId
+		local function GetSmallServer()
+			local AllServers = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+			local LowestPlayers = math.huge
+			local ServerID
+			for _, server in pairs(AllServers.data) do
+				if server.playing < LowestPlayers and server.playing > 0 then
+					LowestPlayers = server.playing
+					ServerID = server.id
+				end
+			end
+			if ServerID then
+				game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ServerID, game.Players.LocalPlayer)
+			end
+		end
+		GetSmallServer()
+	end
+}
+
+local Input = Tabs.Killer:CreateInput("SpectatePlayer", {
+	Title = "Spectate Player",
+	Description = "",
+	Default = "",
+	Placeholder = "Player name...",
+	Numeric = false,
+	Finished = true,
+	Callback = function(Value)
+		local Players = game:GetService("Players")
+		local targetPlayer
+		targetPlayer = Players:FindFirstChild(Value)
+		if not targetPlayer then
+			for _, player in pairs(Players:GetPlayers()) do
+				if player.DisplayName:lower() == Value:lower() then
+					targetPlayer = player
+					break
+				end
+			end
+		end
+		if targetPlayer and targetPlayer.Character then
+			local camera = workspace.CurrentCamera
+			camera.CameraSubject = targetPlayer.Character.Humanoid
+			print("Now spectating: " .. targetPlayer.DisplayName .. " (@" .. targetPlayer.Name .. ")")
+		else
+			print("")
+		end
+	end
+})
+
+
+Tabs.Killer:CreateButton{
+	Title = "Stop Spying",
+	Description = "Switch camera back to your character",
+	Callback = function()
+		local Players = game:GetService("Players")
+		local camera = workspace.CurrentCamera
+		camera.CameraSubject = Players.LocalPlayer.Character.Humanoid
+		print("")
+	end
+}
+
+
+local currentRadius = 75
+local RadiusInput = Tabs.Killer:CreateInput("RadiusInput", {
+	Title = "Kill Aura Radius",
+	Description = "Set the kill aura radius (1-150)",
+	Default = "75",
+	Placeholder = "Enter radius...",
+	Callback = function(Value)
+		currentRadius = math.clamp(tonumber(Value) or 75, 1, 150)
+		Library:Notify({
+			Title = "Radius Updated",
+			Content = "Kill aura radius set to: " .. currentRadius,
+			Duration = 2
+		})
+	end
+})
+
+local Toggle = Tabs.Killer:AddToggle("Kill Nearby", {
+	Title = "Matrix Kill Aura",
+	Default = false,
+	Callback = function(v)
+		getgenv().killNearby = v
+		local radiusVisual = Instance.new("Part")
+		radiusVisual.Anchored = true
+		radiusVisual.CanCollide = false
+		radiusVisual.Transparency = 0.8
+		radiusVisual.Material = Enum.Material.ForceField
+		radiusVisual.Color = Color3.fromRGB(0, 255, 0)
+		radiusVisual.Size = Vector3.new(1, 0.1, 1)
+		task.spawn(function()
+			while getgenv().killNearby do
+				pcall(function()
+					local myCharacter = game.Players.LocalPlayer.Character
+					local myRoot = myCharacter and myCharacter:FindFirstChild("HumanoidRootPart")
+					if myRoot then
+						radiusVisual.Parent = workspace
+						radiusVisual.Size = Vector3.new(currentRadius * 2, 0.1, currentRadius * 2)
+						radiusVisual.CFrame = myRoot.CFrame * CFrame.new(0, -2, 0)
+						local effects = createParticles(myRoot)
+						for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+							if player ~= game.Players.LocalPlayer and not whitelist[player.Name] then
+								local char = player.Character
+								local root = char and char:FindFirstChild("HumanoidRootPart")
+								if root and myRoot and myCharacter:FindFirstChild("LeftHand") then
+									local distance = (root.Position - myRoot.Position).Magnitude
+									if distance <= currentRadius then
+										local killEffect = Instance.new("Part")
+										killEffect.Anchored = true
+										killEffect.CanCollide = false
+										killEffect.Transparency = 0.5
+										killEffect.Material = Enum.Material.Neon
+										killEffect.Color = Color3.fromRGB(0, 255, 0)
+										killEffect.CFrame = root.CFrame
+										killEffect.Size = Vector3.new(5, 5, 5)
+										killEffect.Parent = workspace
+										game:GetService("TweenService"):Create(killEffect, TweenInfo.new(0.5), {
+											Size = Vector3.new(0, 0, 0),
+											Transparency = 1
+										}):Play()
+										game:GetService("Debris"):AddItem(killEffect, 0.5)
+										firetouchinterest(root, myCharacter.LeftHand, 0)
+										task.wait()
+										firetouchinterest(root, myCharacter.LeftHand, 1)
+										gettool()
+									end
+								end
+							end
+						end
+						task.wait(0.1)
+						for _, effect in ipairs(effects) do
+							effect:Destroy()
+						end
+					end
+				end)
+				task.wait(0.1)
+			end
+			radiusVisual:Destroy()
+		end)
+	end
+})
+
+local targetInput = Tabs.Killer:CreateInput("TargetInput", {
+	Title = "Target Player",
+	Description = "Enter Username or Display Name",
+	Default = "",
+	Placeholder = "Enter name here...",
+	Numeric = false,
+	Finished = true,
+	Callback = function(Value)
+		targetPlayer = Value
+	end
+})
+
+local TeleportAnimateButton = Tabs.Killer:CreateToggle("TeleportAnimate", {
+	Title = "Start Banging",
+	Description = "LMAO, Start it now",
+	Default = false,
+	Callback = function(Value)
+		getgenv().doAnimation = Value
+		if targetPlayer then
+			local character = game.Players.LocalPlayer.Character
+			local humanoid = character:WaitForChild("Humanoid")
+			local target = game.Players[targetPlayer].Character
+			local handsUp = Instance.new('Animation')
+			handsUp.AnimationId = 'rbxassetid://148840371'
+			local anim = humanoid:LoadAnimation(handsUp)
+			spawn(function()
+				while getgenv().doAnimation do
+					if target and target:FindFirstChild("HumanoidRootPart") then
+						character.HumanoidRootPart.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+					end
+					task.wait()
+				end
+			end)
+			anim:Play()
+			anim:AdjustSpeed(0.3)
+			while getgenv().doAnimation do
+				character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+				wait(0.2)
+				character.HumanoidRootPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -1)
+				wait(0.2)
+			end
+			if not getgenv().doAnimation then
+				anim:Stop()
+			end
+		end
+	end
+})
+
+local function unequipAllPets()
+	local petsFolder = game:GetService("Players").LocalPlayer.petsFolder
+	for _, folder in pairs(petsFolder:GetChildren()) do
+		if folder:IsA("Folder") then
+			for _, pet in pairs(folder:GetChildren()) do
+				game:GetService("ReplicatedStorage").rEvents.equipPetEvent:fireServer("unequipPet", pet)
+			end
+		end
+	end
+	task.wait(0.1)
+end
+
+local petTypes = {
+	["Swift Samurai"] = "Equip All Swift Samurai",
+	["Tribal Overlord"] = "Equip All Tribal Overlord",
+	["Mighty Monster"] = "Equip All Mighty Monster",
+	["Wild Wizard"] = "Equip All Wild Wizard"
+}
